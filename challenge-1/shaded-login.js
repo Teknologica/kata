@@ -35,6 +35,7 @@
         return axios.post(endpoint, generatePayload(user, pass, twoFa))
             .then(function (response) {
                 store(true);
+                return response;
             })
             .catch(function (error) {
                 store(false);
