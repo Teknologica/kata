@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="https://unpkg.com/vue"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="../shaded-login.js"></script>
+    <title>Challenge 1 - Vue2</title>
+</head>
+<body>
+<div id="login">
+    <form v-if="!isLoggedIn">
+        <div><input v-model="email" placeholder="hello@world.com"></div>
+        <div><input v-model="password" type="password" placeholder="bonjour"></div>
+        <button @click="login" :disabled="isLoading">Login</button>
+    </form>
+    <div v-if="isLoggedIn">
+        Welcome {{email}}.
+        <div>
+            <button @click="logout">Logout</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    var app = new Vue({
+        el: '#login',
+        data: {
+            email: null,
+            password: null,
+            isLoading: false,
+            isLoggedIn: false
+        },
+        mounted: function () {
+            console.log('mounted');
+            this.isLoggedIn = loginForm.isLoggedIn();
+        },
+        methods: {
+            login: function (evt) {
+                evt.preventDefault();
+                this.isLoading = true;
+                //refence scope
+                var self = this;
+                loginForm.login(this.email, this.password)
+                    .then(function () {
+                        self.isLoading = false;
+                        self.isLoggedIn = true;
+                    })
+                    .catch(function () {
+                        self.isLoading = false;
+                        self.isLoggedIn = false;
+                    });
+            },
+            logout: function () {
+                this.isLoggedIn = loginForm.logout();
+            }
+        }
+    });
+</script>
+</body>
+</html>
