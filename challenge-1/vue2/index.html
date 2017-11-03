@@ -10,10 +10,17 @@
 <body>
 <div id="login">
     <form v-if="!isLoggedIn">
-        <div><input v-model="email" placeholder="hello@world.com"></div>
-        <div><input v-model="password" type="password" placeholder="bonjour"></div>
-        <button @click="login" :disabled="isLoading">Login</button>
+        <template v-if="!isTwoFactor">
+            <div><label>Email</label> <input v-model="email" placeholder="hello@world.com"></div>
+            <div><label>Password</label> <input v-model="password" type="password" placeholder="bonjour"></div>
+            <button @click="login" :disabled="isLoading">Login</button>
+        </template>
+        <template v-else>
+            <div><label>Two Factor Password</label> <input v-model="twoFa" placeholder="12345678"></div>
+            <button @click="login" :disabled="isLoading">Continue</button>
+        </template>
     </form>
+    <div></div>
     <div v-if="isLoggedIn">
         Welcome {{email}}.
         <div>
@@ -29,7 +36,9 @@
             email: null,
             password: null,
             isLoading: false,
-            isLoggedIn: false
+            isLoggedIn: false,
+            isTwoFactor: false,
+            twoFa: null
         },
         mounted: function () {
             console.log('mounted');
@@ -39,20 +48,38 @@
             login: function (evt) {
                 evt.preventDefault();
                 this.isLoading = true;
-                //refence scope
+                //reference scope
                 var self = this;
-                loginForm.login(this.email, this.password)
-                    .then(function () {
+                loginForm.login(this.email, this.password, this.twoFa)
+                    .then(function (response) {
                         self.isLoading = false;
                         self.isLoggedIn = true;
+                        console.log(response);
                     })
-                    .catch(function () {
-                        self.isLoading = false;
-                        self.isLoggedIn = false;
+                    .catch(function (error) {
+                        //check for 2fa
+                        if (error.response && 'reb-2fa' in error.response.headers && error.response.status === 401) {
+                            console.warn('2fa required');
+                            self.isTwoFactor = true;
+                            self.isLoading = false;
+                        }
+                        else {
+                            self.isLoading = false;
+                            self.isLoggedIn = false;
+                        }
                     });
             },
             logout: function () {
                 this.isLoggedIn = loginForm.logout();
+                this.reset();
+            },
+            reset: function () {
+                this.email = null;
+                this.password = null;
+                this.isLoading = false;
+                this.isLoggedIn = false;
+                this.isTwoFactor = false;
+                this.twoFa = null;
             }
         }
     });

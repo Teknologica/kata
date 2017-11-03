@@ -10,11 +10,11 @@
         store(false);
     }
 
-    function generatePayload(user, pass) {
+    function generatePayload(user, pass, twoFa) {
         return {
             email: user,
             password: pass,
-            oneTimePassword: null
+            oneTimePassword: twoFa
         };
     }
 
@@ -31,13 +31,14 @@
         return localStorage.getItem(key) !== null;
     }
 
-    Form.prototype.login = function (user, pass) {
-        return axios.post(endpoint, generatePayload(user, pass))
+    Form.prototype.login = function (user, pass, twoFa) {
+        return axios.post(endpoint, generatePayload(user, pass, twoFa))
             .then(function (response) {
                 store(true);
             })
             .catch(function (error) {
                 store(false);
+                return Promise.reject(error);
             });
     };
 
